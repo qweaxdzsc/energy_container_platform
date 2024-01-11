@@ -1,0 +1,46 @@
+
+FoamFile
+{
+    format      ascii;
+    class       volVectorField;
+    location    "0";
+    object      U;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+Uinlet   (0, -3.18, 0);
+
+dimensions      [ 0 1 -1 0 0 0 0 ];
+
+internalField   uniform (0, 0, 0);
+
+boundaryField
+{
+
+
+
+    inlet
+    {
+            type            fixedValue;
+            value           uniform $Uinlet;
+    }
+
+
+
+    outlet
+    {
+            type            pressureinletOutletVelocity;
+            value           uniform (0,0,0);
+    }
+
+
+
+    wall_plate
+    {
+            type            noslip;
+    }
+
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

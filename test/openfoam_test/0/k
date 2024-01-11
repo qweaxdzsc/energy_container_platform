@@ -1,0 +1,40 @@
+
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      k;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+kInlet   0.0015;
+
+dimensions      [ 0 2 -2 0 0 0 0 ];
+
+internalField   uniform $kInlet;
+
+boundaryField
+{
+
+
+
+    inlet
+    {
+            type            fixedValue;
+            value           uniform $kInlet;
+    }
+
+
+
+    outlet
+    {
+            type            inletOutlet;
+            inletValue      uniform $kInlet:
+            value           uniform $kInlet;
+    }
+
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

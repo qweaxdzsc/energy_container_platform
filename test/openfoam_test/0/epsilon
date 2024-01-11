@@ -1,0 +1,48 @@
+
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      epsilon;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+epsilonInlet   0.00052;
+
+dimensions      [ 0 2 -3 0 0 0 0 ];
+
+internalField   uniform $epsilonInlet;
+
+boundaryField
+{
+
+
+
+    inlet
+    {
+            type            fixedValue;
+            value           uniform $epsilonInlet;
+    }
+
+
+
+    outlet
+    {
+            type            inletOutlet;
+            inletValue      uniform $epsilonInlet:
+            value           uniform $epsilonInlet;
+    }
+
+
+
+    wall_plate
+    {
+            type            epsilonWallFunction;
+            value           uniform $epsilonInlet;
+    }
+
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

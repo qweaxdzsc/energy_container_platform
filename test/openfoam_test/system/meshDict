@@ -1,0 +1,20 @@
+
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      meshDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+surfaceFile	"1.fms";
+
+boundaryCellSize	6;
+boundaryCellSizeRefinementThickness 3.0;
+keepCellsIntersectingBoundary	1;
+maxCellSize	20;
+minCellSize	6;
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

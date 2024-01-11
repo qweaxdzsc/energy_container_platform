@@ -1,4 +1,5 @@
-import os.path
+import os
+import subprocess
 
 from openfoam.folder_0 import Folder0
 from openfoam.folder_system import FolderSystem
@@ -41,14 +42,23 @@ FoamFile
 """
         return content
 
-    def write_script(self):
-        script_file = f"{self.project_path}\\{self.script_name}"
-        with open(script_file, 'w') as f:
-            f.write(self.script_content)
+
+def call_wsl_openfoam(project_path, additional_path, openfoam_bashrc, command, logger):
+    path = "/mnt/" + project_path[0].lower() + project_path[2:].replace("\\", "/")
+    path += f"/{additional_path}"
+    logger.debug(f"call wsl and direct to {path}")
+    source = f"source {openfoam_bashrc}"
+    wsl_command = f"""{command} """
+    # command = f"""-t {script_file} --log-file "C:\\Users\\DELL\\Desktop\\onlyLog.log" """  # back end running
+    p = subprocess.Popen(f'wsl bash -c "cd {path};{wsl_command}"', shell=True, stdout=subprocess.PIPE)
+    logger.info("calling wsl openfoam through popen")
+    out, err = p.communicate()
+    logger.info(out)
+    logger.debug(err)
+    logger.info("calling wsl openfoam end")
 
 
 if __name__ == "__main__":
-    #
     import logging
     project_path = r"C:\Users\DELL\Desktop\energy_container_platform\test"
     project_name = "openfoam_test"

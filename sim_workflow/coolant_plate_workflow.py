@@ -1,12 +1,15 @@
-from salome.salome_py_command import SalomeScript
+from salome.salome_py_command import SalomeScript, call_salome
+from openfoam.foam_py import FoamPy, call_wsl_openfoam
 import os
 
 
 class CoolantPlateWorkflow(object):
-    def __init__(self, project_path, param_dict, logger):
+    def __init__(self, project_path, param_dict, logger, call_config):
         self.project_path = project_path
         self.param = param_dict
         self.logger = logger
+        self.salome_path = call_config['salome']
+        self.openfoam_bashrc = call_config['openfoam']
 
         self.study_file_path_geo = f"{project_path}\\coolant_plate_geo.hdf"
         self.study_file_path_mesh = f"{project_path}\\coolant_plate_mesh.hdf"
@@ -30,10 +33,11 @@ class CoolantPlateWorkflow(object):
         preprocess_script.save_study(self.study_file_path_geo)
         preprocess_script.exit_salome()
         preprocess_script.done_output()
+        call_salome(self.salome_path, script_file_path, self.logger)
 
         interface_group = {}
 
-        return script_file_path, interface_group
+        return interface_group
 
     def mesh(self):
         input_step = f"{self.project_path}\\{self.param['input_step']}"
@@ -63,10 +67,23 @@ class CoolantPlateWorkflow(object):
         preprocess_script.mesh.export_fms(self.output_fms, fms_py)
         preprocess_script.update_gui()
         preprocess_script.save_study(self.study_file_path_mesh)
-        # preprocess_script.exit_salome()
+        preprocess_script.exit_salome()
         preprocess_script.done_output()
-
-        return script_file_path
+        call_salome(self.salome_path, script_file_path, self.logger)
+        self.logger.critical("surface mesh stage finished")
+        self.logger.debug("salome surface mesh and export fms mesh finished")
+        # use cfmesh
+        command = "sh command.sh"
+        run_directory = "cfmesh_test_V2"
+        foam = FoamPy(self.project_path, "cfmesh_test_V2", self.logger)
+        min_size = self.param["mesh"]['min_size']
+        nlayers = self.param["mesh"]['nlayers']
+        foam.system.mesh_dict.mesh_file("coolant_plate_fms.fms")
+        foam.system.mesh_dict.global_settings(min_size, 0.1 * min_size, 20, min_size)
+        foam.system.mesh_dict.prism_settings("defaultFaces", 1, nlayers, 1.4)
+        foam.system.mesh_dict.write_file()
+        call_wsl_openfoam(self.project_path, run_directory, self.openfoam_bashrc, command, self.logger)
+        self.logger.debug("wsl openfoam cfMesh complete")
 
     def solve(self):
         pass

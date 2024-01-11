@@ -1,9 +1,7 @@
-import argparse
-import csv
 import json
 import os
 import logging
-import subprocess
+
 
 # from salome.salome_py_command import SalomeScript
 from sim_workflow.coolant_plate_workflow import CoolantPlateWorkflow
@@ -27,8 +25,7 @@ class PySimCall(object):
         self.param_json = param_json
         self.logging_level = logging_level
         # ======parameter init =================
-        self.salome_path = str()
-        self.openfoam_bashrc = str()
+        self.call_config = dict()
         self.param = dict()
         self.progress = float()
         self.abnormal = str()
@@ -51,6 +48,9 @@ class PySimCall(object):
             self.param["bc_id_dict"] = {}
             for i in self.param["geoModel"]["groupNames"]:
                 self.param["bc_id_dict"][i["name"]] = i["faces"]
+            self.param["mesh"] = {}
+            self.param["mesh"]['nlayers'] = self.param["meshControl"]["boundaryLayers"]
+            self.param["mesh"]['min_size'] = self.param["meshControl"]["fluidRunnerSize"]
         except Exception as e:
             self.logger.error(e)
         else:
@@ -59,113 +59,56 @@ class PySimCall(object):
 
     def config_salome(self, salome_path):
         if os.path.exists(salome_path):
-            self.salome_path = salome_path
+            self.call_config['salome'] = salome_path
         else:
             self.logger.error("salome path is not exist")
 
     def config_openfoam(self, openfoam_bashrc):
-        self.openfoam_bashrc = openfoam_bashrc
+        self.call_config['openfoam'] = openfoam_bashrc
+
+    def configuration_check(self):
+        config_items = ['salome', 'openfoam']
+        for items in config_items:
+            if items not in self.call_config.keys():
+                self.logger.error(f"{items} is not configured")
+                return False
+            elif not self.call_config[items]:
+                self.logger.error(f"{items} configuration is not correct")
+                return False
+        return True
 
     def do_task(self):
-        # script_file = r"E:\project_simulation\energy_container\container_V1\coolant_V1\test2.py"
-        if self.salome_path:
-            if self.sim_mode == "pack":
+        if not self.configuration_check:
+            self.logger.error("The configuration check failed, unable to do task")
+            return None
+        if self.sim_mode == "pack":
+            pass
+        elif self.sim_mode == "coolant_plate":
+            if self.stage == "all":
                 pass
-            elif self.sim_mode == "coolant_plate":
-                if self.stage == "all":
-                    pass
-                    # wf.all_run()
-                    # self.call_salome(self.salome_path, script_file_path)
-                    # self.coolant_plate_workflow()
-                elif self.stage == "geo_struct":
-                    wf = CoolantPlateWorkflow(self.project_path, self.param, self.logger)
-                    script_file_path, interface_group = wf.geo_struct()
-                    self.call_salome(self.salome_path, script_file_path)
-                    self.logger.critical("geometry renaming finished")
+            elif self.stage == "geo_struct":
+                wf = CoolantPlateWorkflow(self.project_path, self.param, self.logger, self.call_config)
+                interface_group = wf.geo_struct()
+                self.logger.critical("geometry renaming finished")
 
-                    return interface_group
+                return interface_group
 
-                elif self.stage == "geo_finish":
-                    self.logger.critical("geometry stage all finished")
-                    pass
-
-                elif self.stage == "mesh":
-                    wf = CoolantPlateWorkflow(self.project_path, self.param, self.logger)
-                    script_file_path = wf.mesh()
-                    # self.call_salome(self.salome_path, script_file_path)
-                    self.logger.critical("surface mesh stage finished")
-                    self.logger.debug("salome surface mesh and export fms mesh finished")
-                    command = "sh command.sh"
-                    run_directory = "cfmesh_test_V2"
-                    self.call_wsl_openfoam(run_directory, command)
-                    self.logger.critical("mesh stage finished")
-
-                elif self.stage == "solve":
-                    pass
-
-            elif self.sim_mode == "coolant_tube":
+            elif self.stage == "geo_finish":
+                self.logger.critical("geometry stage all finished")
                 pass
-            elif self.sim_mode == "container":
+
+            elif self.stage == "mesh":
+                wf = CoolantPlateWorkflow(self.project_path, self.param, self.logger, self.call_config)
+                wf.mesh()
+                self.logger.critical("mesh stage finished")
+
+            elif self.stage == "solve":
                 pass
-        else:
-            self.logger.error("salome path is not exist")
 
-    # def coolant_plate_workflow(self):
-    #     study_file_path = f"{project_path}\\new_coolant_plate_study.hdf"
-    #     input_step = f"{project_path}\\{self.param['input_step']}"
-    #     output_mesh = f"{project_path}\\coolant_plate_mesh.unv"
-    #     script_file_name = "coolant_plate_workflow.py"
-    #     script_file_path = f"{project_path}\\{script_file_name}"
-    #
-    #     preprocess_script = SalomeScript(project_path, script_file_name, self.logger,
-    #                                      compound_str_list=self.param['compound_str_list'],
-    #                                      bc_id_dict=self.param['bc_id_dict'])
-    #     preprocess_script.salome_init()
-    #     # ====== GEOM script: Salome====================
-    #     preprocess_script.geom.geo_init()
-    #     preprocess_script.geom.import_step(input_step)
-    #     preprocess_script.geom.extract_all_solids()
-    #     preprocess_script.geom.get_face_id_list()
-    #     preprocess_script.geom.build_face_group()
-    #     preprocess_script.update_gui()
-    #     preprocess_script.save_study(study_file_path)
-    #     # =========Mesh script: Salome ========================
-    #     preprocess_script.mesh.mesh_init()
-    #     preprocess_script.mesh.create_main_mesh()
-    #     preprocess_script.mesh.group_from_geo()
-    #     preprocess_script.mesh.clear_tet_param()
-    #     for compound in self.param['compound_str_list']:
-    #         preprocess_script.mesh.add_tet_param(compound, 14, 2.5, 4, 0.75)
-    #     preprocess_script.mesh.compute_all()
-    #     preprocess_script.mesh.export_unv(output_mesh)
-    #     preprocess_script.update_gui()
-    #     # =========Save Salome Study and write script ===================
-    #     preprocess_script.save_study(study_file_path)
-    #     preprocess_script.write_script()
-    #
-    #     self.call_salome(self.salome_path, script_file_path)
-
-    def call_salome(self, salome_path, script_file):
-        command = f"""{script_file} """
-        # command = f"""-t {script_file} --log-file "C:\\Users\\DELL\\Desktop\\onlyLog.log" """  # back end running
-        p = subprocess.Popen(f"python {salome_path}\\salome {command}", shell=True, stdout=subprocess.PIPE)
-        self.logger.info("calling salome through popen")
-        out, err = p.communicate()
-        print(out, err)
-        self.logger.info("calling salome end")
-
-    def call_wsl_openfoam(self, additional_path, command):
-        path = "/mnt/" + self.project_path[0].lower() + self.project_path[2:].replace("\\", "/")
-        path += f"/{additional_path}"
-        self.logger.debug(f"call wsl and direct to {path}")
-        source = f"source {self.openfoam_bashrc}"
-        wsl_command = f"""{command} """
-        # command = f"""-t {script_file} --log-file "C:\\Users\\DELL\\Desktop\\onlyLog.log" """  # back end running
-        p = subprocess.Popen(f'wsl bash -c "cd {path};{wsl_command}"', shell=True, stdout=subprocess.PIPE)
-        self.logger.info("calling wsl openfoam through popen")
-        out, err = p.communicate()
-        print(out, err)
-        self.logger.info("calling wsl openfoam end")
+        elif self.sim_mode == "coolant_tube":
+            pass
+        elif self.sim_mode == "container":
+            pass
 
     def script_salome(self):
         pass
@@ -208,10 +151,9 @@ if __name__ == '__main__':
     project_name = r"coolant_V2"
     sim_mode = "coolant_plate"
     stage = "mesh"
-    test_json = r"C:\Users\DELL\Desktop\energy_container_platform\sim_param.json"
+    test_json = r"E:\project_simulation\energy_container\container_V1\coolant_V2\sim_params.json"
     with open(test_json, 'r') as f:
         param_json = json.load(f)
-
     # param = {
     #     "input_step": "coolant_plate_V1_simplified.stp",
     #     "compound_str_list": ["Volume"],

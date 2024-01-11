@@ -1,4 +1,16 @@
 import os
+import subprocess
+
+
+def call_salome(salome_path, script_file, logger):
+    command = f"""{script_file} """
+    # command = f"""-t {script_file} --log-file "C:\\Users\\DELL\\Desktop\\onlyLog.log" """  # back end running
+    p = subprocess.Popen(f"python {salome_path}\\salome {command}", shell=True, stdout=subprocess.PIPE)
+    logger.info("calling salome through popen")
+    out, err = p.communicate()
+    logger.info(out)
+    logger.debug(err)
+    logger.info("calling salome end")
 
 
 class SalomeScript(object):
@@ -447,11 +459,11 @@ for index, solid_name in enumerate(solid_str_list):
             with open(export_fms_py, 'w') as f:
                 f.write(converter_fms)
             text = f"""
-with open("{export_fms_py}", 'r') as f:
+with open(r"{export_fms_py}", 'r') as f:
     py_content = f.read()
     exec(py_content)
 fms_obj = triSurf(Mesh_All)
-fms_obj.writeFms("{output_mesh}")
+fms_obj.writeFms(r"{output_mesh}")
 """
             self.salome.script_content += text
         else:

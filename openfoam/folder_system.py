@@ -22,7 +22,7 @@ class FolderSystem(object):
 
         def default(self, file, max_size, min_size):
             self.mesh_file(file)
-            self.global_settings(min_size, 0.5 * min_size, max_size, min_size)
+            self.global_settings(min_size, 0.1 * min_size, max_size, min_size)
             self.write_file()
 
         def mesh_file(self, file):

@@ -12,7 +12,7 @@ FoamFile
 surfaceFile	"1.fms";
 
 boundaryCellSize	6;
-boundaryCellSizeRefinementThickness 3.0;
+boundaryCellSizeRefinementThickness 0.6000000000000001;
 keepCellsIntersectingBoundary	1;
 maxCellSize	20;
 minCellSize	6;

@@ -64,6 +64,7 @@ class Folder0(object):
         bc_field = self.BoundaryField(self)
         bc_field.BC_k_inlet("inlet")
         bc_field.BC_k_outlet("outlet")
+        bc_field.BC_k_wall("wall_plate")
         self.write_file("k", "volScalarField", "0", "k")
 
     def nut_file(self):
@@ -101,7 +102,7 @@ internalField   uniform {value};
     def set_con_Uinlet(self, uinx, uiny, uinz):
 
         self.file_content += f"""
-Uinlet   ({uinx}, {uiny}, {uinz});
+Uinlet   ({uinx} {uiny} {uinz});
 """
 
     def set_internal_Ufield(self, ux, uy, uz, uniform=True):
@@ -109,7 +110,7 @@ Uinlet   ({uinx}, {uiny}, {uinz});
         if uniform:
             if isinstance(ux, int) or isinstance(ux, float):
                 self.file_content += f"""
-internalField   uniform {ux, uy, uz};
+internalField   uniform ({ux} {uy} {uz});
 """
 
     def set_con_epsiloninlet(self, epsilon):
@@ -193,7 +194,7 @@ boundaryField
 """
             self.add(content)
 
-        def BC_U_outlet(self, bc_name, type="pressureinletOutletVelocity", value="uniform (0,0,0)"):
+        def BC_U_outlet(self, bc_name, type="pressureinletOutletVelocity", value="uniform (0 0 0)"):
             content = f"""
     {bc_name}
     {{
@@ -342,7 +343,6 @@ boundaryField
         content += self.file_content
         content += self.foam.general_separator()
         file = f"{self.folder_path}\\{file_name}"
-
         with open(file, 'w') as f:
             f.write(content)
         self.file_content = ""

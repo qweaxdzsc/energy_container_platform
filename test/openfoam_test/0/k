@@ -35,6 +35,14 @@ boundaryField
             value           uniform $kInlet;
     }
 
+
+
+    wall_plate
+    {
+            type            kqRWallFunction;
+            value           uniform $kInlet;
+    }
+
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

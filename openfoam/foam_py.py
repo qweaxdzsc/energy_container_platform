@@ -71,3 +71,5 @@ if __name__ == "__main__":
     foam.f0.k_file()
     foam.f0.nut_file()
     foam.system.mesh_dict.default("1.fms", 20, 6)
+    foam.constant.momentumTransport_file()
+    foam.constant.physicalProperties_file()

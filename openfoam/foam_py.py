@@ -29,6 +29,7 @@ class FoamPy(object):
 FoamFile
 {{
     format      ascii;
+    version     2.0;
     class       {foam_class};
     location    "{file_location}";
     object      {object};
@@ -70,6 +71,7 @@ if __name__ == "__main__":
     foam.f0.epsilon_file()
     foam.f0.k_file()
     foam.f0.nut_file()
-    foam.system.mesh_dict.default("1.fms", 20, 6)
     foam.constant.momentumTransport_file()
     foam.constant.physicalProperties_file()
+    foam.system.control_dict.default()
+    foam.system.mesh_dict.default("1.fms", 20, 6)

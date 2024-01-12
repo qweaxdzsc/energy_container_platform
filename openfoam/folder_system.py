@@ -13,6 +13,7 @@ class FolderSystem(object):
             self.foam.logger.warning("The system file is already exist")
 
         self.mesh_dict = self.MeshDict(self)
+        self.control_dict = self.ControlDict(self)
 
     class MeshDict(object):
         def __init__(self, fsystem):
@@ -151,3 +152,88 @@ edgeMeshRefinement
             # reset
             self.file_content = ""
 
+    class ControlDict(object):
+        def __init__(self, fsystem):
+            self.fsystem = fsystem
+            self.general = self.fsystem.foam
+            self.file_content = ""
+            self.control_dict = dict()
+
+        def default(self):
+            self.default_dict()
+            self.write_file()
+
+        def template(self):
+            text = f"""
+application     {self.control_dict["application"]};
+
+startFrom       {self.control_dict["startFrom"]};
+
+startTime       {self.control_dict["startTime"]};
+
+stopAt          {self.control_dict["stopAt"]};
+
+endTime         {self.control_dict["endTime"]};
+
+deltaT          {self.control_dict["deltaT"]};
+
+writeControl    {self.control_dict["writeControl"]};
+
+writeInterval   {self.control_dict["writeInterval"]};
+
+purgeWrite      {self.control_dict["purgeWrite"]};
+
+writeFormat     {self.control_dict["writeFormat"]};
+
+writePrecision  {self.control_dict["writePrecision"]};
+
+writeCompression {self.control_dict["writeCompression"]};
+
+timeFormat      {self.control_dict["timeFormat"]};
+
+timePrecision   {self.control_dict["timePrecision"]};
+
+runTimeModifiable {self.control_dict["runTimeModifiable"]};
+
+functions
+{{
+   {self.control_dict["function"]}
+}}
+"""
+            return text
+
+        def default_dict(self):
+            self.control_dict["application"] = "simpleFoam"
+            self.control_dict["startFrom"] = "latestTime"
+            self.control_dict["startTime"] = "0"
+            self.control_dict["stopAt"] = "endTime"
+            self.control_dict["endTime"] = "400"
+            self.control_dict["deltaT"] = "1"
+            self.control_dict["writeControl"] = "timeStep"
+            self.control_dict["writeInterval"] = "50"
+            self.control_dict["purgeWrite"] = "0"
+            self.control_dict["writeFormat"] = "ascii"
+            self.control_dict["writePrecision"] = "6"
+            self.control_dict["writeCompression"] = "off"
+            self.control_dict["timeFormat"] = "general"
+            self.control_dict["timePrecision"] = "6"
+            self.control_dict["runTimeModifiable"] = "true"
+            self.control_dict["function"] = ""
+
+        def write_file(self):
+            file = f"{self.fsystem.folder_path}\\controlDict"
+            self.file_content += self.template()
+            # assemble mesh dict file
+            content = ""
+            content = self.general.general_header(content, "dictionary", "system", "controlDict")
+            content += self.general.general_separator()
+            content += self.file_content
+            content += self.general.general_separator()
+            # determine if exist file, and overwrite by default
+            if os.path.exists(file):
+                self.general.logger.critical("path already have controlDict, overwrite by default")
+            # write
+            with open(file, 'w') as f:
+                f.write(content)
+            # reset
+            self.file_content = ""

@@ -2,6 +2,7 @@
 FoamFile
 {
     format      ascii;
+    version     2.0;
     class       volScalarField;
     location    "0";
     object      nut;

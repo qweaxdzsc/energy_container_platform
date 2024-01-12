@@ -147,11 +147,11 @@ class PySimCall(object):
 if __name__ == '__main__':
     salome_path = r"C:\SALOME-9.10.0"
     openfoam_bashrc = "/usr/lib/openfoam/openfoam2306/etc/bashrc"
-    project_path = r"E:\project_simulation\energy_container\container_V1\coolant_V2"
-    project_name = r"coolant_V2"
+    project_path = r"E:\project_simulation\energy_container\siwei\coolant_V1"
+    project_name = r"coolant_V1"
     sim_mode = "coolant_plate"
-    stage = "mesh"
-    test_json = r"E:\project_simulation\energy_container\container_V1\coolant_V2\sim_params.json"
+    stage = "geo_struct"
+    test_json = r"E:\project_simulation\energy_container\siwei\coolant_V1\sim_param.json"
     with open(test_json, 'r') as f:
         param_json = json.load(f)
     # param = {

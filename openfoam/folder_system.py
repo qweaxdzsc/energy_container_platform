@@ -237,3 +237,12 @@ functions
                 f.write(content)
             # reset
             self.file_content = ""
+
+    class FvSchemes(object):
+        def __init__(self, fsystem):
+            self.fsystem = fsystem
+            self.general = self.fsystem.foam
+            self.file_content = ""
+
+
+

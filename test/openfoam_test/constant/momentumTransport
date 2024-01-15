@@ -1,0 +1,24 @@
+
+FoamFile
+{
+    format      ascii;
+    version     2.0;
+    class       dictionary;
+    location    "constant";
+    object      RASProperties;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+simulationType   RAS;
+
+RAS
+ {
+           model            kEpsilon;
+
+           turbulence       on;
+
+           printCoeffs      on;
+ }
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
